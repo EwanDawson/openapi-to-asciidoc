@@ -1,0 +1,89 @@
+#+TITLE: OpenAPI to Asciidoc Conversion
+#+PROPERTY: header-args:sh  :results output :exports both
+
+* Overview
+I want to be able to take on OpenAPI specification file, and render it as Asciidoc, for further publishing to HTML or PDF.
+
+* openapi-generator
+
+First, we need to obtain the [[https://github.com/OpenAPITools/openapi-generator][openapi-generator]] cli JAR:
+
+#+BEGIN_SRC sh
+wget https://repo1.maven.org/maven2/org/openapitools/openapi-generator-cli/5.0.0-beta2/openapi-generator-cli-5.0.0-beta2.jar -O openapi-generator-cli.jar
+ls -lh openapi-generator-cli.jar
+#+END_SRC
+
+#+RESULTS:
+: -rw-rw-r-- 1 ewan ewan 23M Sep  4 06:38 openapi-generator-cli.jar
+
+Now let's confirm we can run the JAR.
+
+#+BEGIN_SRC sh
+java -jar openapi-generator-cli.jar help
+#+END_SRC
+
+#+RESULTS:
+#+begin_example
+usage: openapi-generator-cli <command> [<args>]
+
+The most commonly used openapi-generator-cli commands are:
+    author        Utilities for authoring generators or customizing templates.
+    config-help   Config help for chosen lang
+    generate      Generate code with the specified generator.
+    help          Display help information about openapi-generator
+    list          Lists the available generators
+    meta          MetaGenerator. Generator for creating a new template set and configuration for Codegen.  The output will be based on the language you specify, and includes default templates to include.
+    validate      Validate specification
+    version       Show version information used in tooling
+
+See 'openapi-generator-cli help <command>' for more information on a specific
+command.
+
+#+end_example
+
+Now let's generate some asciidoc documentation from an OpenAPI spec file.
+
+#+BEGIN_SRC sh
+java -jar openapi-generator-cli.jar generate -g asciidoc -i 'https://gist.githubusercontent.com/steg/aa85ab6ab51918e60bec47ed3d2257ef/raw/9e5a3a3bd5ae03f575ae238b9a8c5c6e718967d1/swagger.yaml' -o decision-engine-api
+tree -a decision-engine-api
+#+END_SRC
+
+#+RESULTS:
+#+begin_example
+[main] INFO  o.o.codegen.DefaultGenerator - Generating with dryRun=false
+[main] WARN  o.o.c.ignore.CodegenIgnoreProcessor - Output directory does not exist, or is inaccessible. No file (.openapi-generator-ignore) will be evaluated.
+[main] INFO  o.o.codegen.DefaultGenerator - OpenAPI Generator: asciidoc (documentation)
+[main] INFO  o.o.codegen.DefaultGenerator - Generator 'asciidoc' is considered stable.
+[main] WARN  o.o.c.l.AsciidocDocumentationCodegen - base part for include markup lambda not found: null as /home/ewan/Projects/openapi-to-asciidoc/null
+[main] WARN  o.o.c.l.AsciidocDocumentationCodegen - base part for include markup lambda not found: null as /home/ewan/Projects/openapi-to-asciidoc/null
+[main] WARN  o.o.codegen.DefaultCodegen - Empty operationId found for path: post /governance-engine/batch. Renamed to auto-generated operationId: governance_engineBatchPost
+[main] WARN  o.o.codegen.DefaultCodegen - Empty operationId found for path: post /governance-engine. Renamed to auto-generated operationId: governance_enginePost
+[main] INFO  o.o.codegen.TemplateManager - writing file /home/ewan/Projects/openapi-to-asciidoc/decision-engine-api/index.adoc
+[main] INFO  o.o.codegen.TemplateManager - writing file /home/ewan/Projects/openapi-to-asciidoc/decision-engine-api/.openapi-generator-ignore
+[main] INFO  o.o.codegen.TemplateManager - writing file /home/ewan/Projects/openapi-to-asciidoc/decision-engine-api/.openapi-generator/VERSION
+[main] INFO  o.o.codegen.TemplateManager - writing file /home/ewan/Projects/openapi-to-asciidoc/decision-engine-api/.openapi-generator/FILES
+decision-engine-api
+├── index.adoc
+├── .openapi-generator
+│   ├── FILES
+│   └── VERSION
+└── .openapi-generator-ignore
+
+1 directory, 4 files
+#+end_example
+
+So we see the =index.adoc= file is created in the oputput directory along with some other files.
+
+We can transform the adoc into both HTML and PDF, using asciidoctor.
+
+#+BEGIN_SRC sh
+asciidoctor decision-engine-api/index.adoc
+asciidoctor-pdf decision-engine-api/index.adoc
+ls -lh decision-engine-api
+#+END_SRC
+
+#+RESULTS:
+: total 364K
+: -rw-rw-r-- 1 ewan ewan  15K Oct 28 20:06 index.adoc
+: -rw-rw-r-- 1 ewan ewan  72K Oct 28 20:09 index.html
+: -rw-rw-r-- 1 ewan ewan 274K Oct 28 20:09 index.pdf
